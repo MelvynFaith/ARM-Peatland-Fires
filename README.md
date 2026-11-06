@@ -13,7 +13,25 @@ Each transaction is one peat cell (0.25°, about 28 km) in one week, from 2012 t
 
 Rules are mined on 2012 to 2019 and tested on 2023 to 2026. They must beat a simple baseline. The final output is a short rule card that officers can check from free weekly data.
 
-The research, the novelty and the Business Objective Determination are in [docs/RESEARCH.md](docs/RESEARCH.md).
+## Documents
+
+| File | Contents |
+|---|---|
+| [docs/STATUS.md](docs/STATUS.md) | Course requirements, decisions made, next steps, open questions. Start here. |
+| [docs/RESEARCH.md](docs/RESEARCH.md) | Literature, novelty, BOD and the research design for mining and evaluation |
+| [docs/DATA.md](docs/DATA.md) | Sources, pipeline, cleaning rules, column meanings, known issues |
+| `CLAUDE.md` | Git authorship rules for AI-assisted commits |
+
+## Layout
+
+```
+src/config.py           settings and year splits
+src/download_*.py       data downloads
+src/regions.py          country, province and island for each cell
+src/build_dataset.py    weekly cell table: data/samples.parquet
+data/                   downloaded and built data (not in git)
+docs/                   documentation
+```
 
 ## Data sources
 
