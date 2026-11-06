@@ -25,7 +25,22 @@ The research, the novelty and the Business Objective Determination are in [docs/
 | El Niño index | NOAA ONI |
 | Boundaries | Natural Earth |
 
-The data pipeline is reused from the team's earlier competition project. Raw and processed data are not stored in git.
+The data pipeline in `src/` (downloads, `regions.py`, `build_dataset.py`) is copied unchanged from the team's earlier competition project, SIGAP Gambut (commit `9870036`). Only `config.py` was trimmed and given the rule-mining splits. Raw and processed data are not stored in git.
+
+## Building the dataset
+
+Needs Python 3.10 or later and a free [FIRMS map key](https://firms.modaps.eosdis.nasa.gov/api/map_key/) in the `FIRMS_MAP_KEY` environment variable. The downloads take about an hour and fill `data/` (about 450 MB).
+
+```
+pip install -r requirements.txt
+cd src
+python download_misc.py
+python download_chirps.py
+python download_firms.py
+python build_dataset.py
+```
+
+`build_dataset.py` writes `data/samples.parquet`: one row per peat cell per week, with rainfall, dry-spell, hotspot-history, peat, season and El Niño features, and the label for the next 7 days.
 
 ## Timeline
 

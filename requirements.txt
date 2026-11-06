@@ -1,0 +1,11 @@
+pandas
+numpy
+pyarrow
+xarray
+h5netcdf
+h5py
+fsspec
+aiohttp
+requests
+pillow
+shapely
