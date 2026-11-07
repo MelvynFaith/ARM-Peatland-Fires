@@ -81,3 +81,16 @@ Run from `src/` in this order. Times are from the earlier project.
 - **NRT versus SP.** FIRMS moves near-real-time data into the SP archive a few months later. If the NRT download for August to October 2026 comes back empty, check how far SP now reaches and move `SP_END` in `config.py`. This has not been tested.
 - **CHIRPS.** A server error (for example a one-off 403) is usually temporary. Rerun and the cache resumes.
 - **Missing variables.** There is no temperature, humidity, wind, land cover or human activity data. Rules can only use rain, fire history, peat, season, place and El Niño.
+
+## Week 11 changes to the pipeline
+
+The pipeline was run for the first time in this repo in week 11 (7 November 2026). Four small changes were needed. The cleaning rules and features are unchanged.
+
+- **FIRMS key in `.env`.** `config.py` now reads a `.env` file in the project root, so the key does not have to be set in the shell each time. Copy `.env.example` to `.env` and fill in `FIRMS_MAP_KEY=...`. `.env` is in `.gitignore`. A variable already set in the shell still wins.
+- **CHIRPS moved.** The CHC server moved the files from `products/CHIRPS-2.0/` to `products/CHIRPS/v2.0/`. Both URLs in `download_chirps.py` were updated.
+- **CHIRPS rate limit.** The server now answers `429 Too Many Requests` to the many large parallel range requests fsspec makes. `download_chirps.py` now reads the netCDF files through a small `RangeFile` reader: 256 KB range requests, one at a time, cached in memory, with waiting and retrying on 429. Only the chunks of the study box are read. The rainfall values are the same (0.05° averaged to 0.25°).
+- **Windows encoding.** `regions.py` reads the Natural Earth GeoJSON as UTF-8. Windows otherwise uses cp1252 and fails.
+- **SP versus NRT.** On 7 November 2026 the FIRMS SP archive reached 31 July 2026, which is already `SP_END`. So all hotspots up to July 2026 are archived data, and only 1 August to 27 October 2026 is NRT. The team kept the NRT weeks, so the 2026 El Niño fire season stays in the data. `evaluate_rules.py` also reports holdout lift on `quality = final` rows only, as a check.
+- **`pandas<3`.** The pipeline was written for pandas 2. `requirements.txt` now pins it.
+
+Note on CHIRPS availability: on 7 November 2026 `data.chc.ucsb.edu` refused all connections for a while. The NOAA ERDDAP mirror (`coastwatch.pfeg.noaa.gov/erddap/griddap/chirps20GlobalDailyP05`) was checked as a backup, but it only holds some years (for example 2012, 2016, 2020, 2024 and 2025, and not 2015), so it cannot replace the CHC server.

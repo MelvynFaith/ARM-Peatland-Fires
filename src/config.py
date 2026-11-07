@@ -1,9 +1,24 @@
 """Shared settings. Study area: Indonesian peat cells in Sumatra and Kalimantan, 0.25 degree cells, weekly samples."""
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 RESULTS = ROOT / "results"
+
+
+def _load_env(path=ROOT / ".env"):
+    """Read KEY=VALUE lines from the project .env (for FIRMS_MAP_KEY). A variable already set in the shell wins."""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            k, v = line.split("=", 1)
+            os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+
+
+_load_env()
 
 # lon_min, lat_min, lon_max, lat_max
 BBOX = (95.0, -6.0, 119.0, 6.0)

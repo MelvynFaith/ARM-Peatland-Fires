@@ -1,4 +1,4 @@
-pandas
+pandas<3
 numpy
 pyarrow
 xarray
@@ -9,3 +9,8 @@ aiohttp
 requests
 pillow
 shapely
+# week 11: preprocessing, mining and evaluation
+mlxtend
+scikit-learn
+scipy
+matplotlib

@@ -17,7 +17,7 @@ SUMATRA = {"Aceh", "Sumatera Utara", "Sumatera Barat", "Riau", "Kepulauan Riau",
 
 
 def provinces():
-    gj = json.loads((DATA / "ne_provinces.geojson").read_text())
+    gj = json.loads((DATA / "ne_provinces.geojson").read_text(encoding="utf-8"))
     keep = [f for f in gj["features"] if f["properties"]["admin"] in ("Indonesia", "Malaysia", "Brunei", "Singapore")]
     return [shape(f["geometry"]) for f in keep], [(f["properties"]["admin"], f["properties"]["name"]) for f in keep]
 

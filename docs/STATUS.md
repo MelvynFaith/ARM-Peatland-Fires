@@ -50,3 +50,14 @@ Data Mining course project, topic association rule mining (ARM). Weekly plan fro
 - Do the success thresholds in RESEARCH.md section 4 (holdout lift at least 1.5, support at least 0.5%) match the lecturer's expectations?
 - Does the course allow reusing the competition project's data pipeline, and how should AI assistance be disclosed? The report should state both.
 - Who are the team members for this course project?
+
+## Week 11 progress (7 November 2026)
+
+Full write-up: [REPORT.md](REPORT.md).
+
+- **Code added:** `src/items.py` (preprocessing into 25 items), `src/mine.py` (Apriori, FP-Growth, ECLAT, class rules, benchmark), `src/evaluate_rules.py` (holdout and per-year lift, block bootstrap, El Niño contrast, rule card versus baselines, decision tree), `tests/smoke_test.py`.
+- **BOD followed:** the week 11 BOD from the team: rules ending in "fire next week" on all cells, plus quiet cells for new ignitions (question 4). Extinction rules from RESEARCH.md are left for week 14.
+- **Splits used:** mine on 2012 to 2019, holdout 2020 to 2026, also reported as 2020-2022 and 2023-2026 (`evaluate_rules.py`).
+- **Data:** FIRMS, Peat-ML, ONI and boundaries downloaded. CHIRPS is blocked by a server outage on `data.chc.ucsb.edu`. Pipeline fixes are listed in DATA.md, "Week 11 changes to the pipeline".
+- **Verified:** smoke test passes, the three algorithms give identical itemsets, Apriori runs with `low_memory=True` (the default needed too much RAM).
+- **Next:** run the pipeline when CHIRPS is back and fill REPORT.md sections 7.2 to 7.6 from `results/summary.md`.

@@ -4,3 +4,6 @@ __pycache__/
 .ipynb_checkpoints/
 .env
 .venv/
+
+# week 11
+logs/

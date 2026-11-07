@@ -11,16 +11,66 @@ import fsspec
 from PIL import Image
 from config import BBOX, CELL, DATA, END
 
-URL = "https://data.chc.ucsb.edu/products/CHIRPS-2.0/global_daily/netcdf/p05/chirps-v2.0.{y}.days_p05.nc"
-PRELIM = "https://data.chc.ucsb.edu/products/CHIRPS-2.0/prelim/global_daily/tifs/p05/{y}/"
+URL = "https://data.chc.ucsb.edu/products/CHIRPS/v2.0/global_daily/netcdf/p05/chirps-v2.0.{y}.days_p05.nc"
+PRELIM = "https://data.chc.ucsb.edu/products/CHIRPS/v2.0/prelim/global_daily/tifs/p05/{y}/"
 K = int(round(CELL / 0.05))
+
+
+class RangeFile(io.RawIOBase):
+    """Read-only file over HTTP Range requests, for h5netcdf. Added Nov 2026: the CHIRPS server now answers
+    429 Too Many Requests to fsspec's 8 MB read-ahead, so this reads small blocks one at a time, keeps them
+    in memory, and waits and retries when the server asks it to slow down. Only the chunks of the study box
+    are fetched (about 2% of each global file)."""
+    BLOCK = 256 * 1024
+
+    def __init__(self, url):
+        self.url, self.pos, self.cache = url, 0, {}
+        self.s = requests.Session()
+        self.size = int(self.s.head(url, timeout=60).headers["Content-Length"])
+
+    def readable(self): return True
+    def seekable(self): return True
+    def tell(self): return self.pos
+
+    def seek(self, off, whence=0):
+        self.pos = off if whence == 0 else self.pos + off if whence == 1 else self.size + off
+        return self.pos
+
+    def _block(self, b):
+        if b not in self.cache:
+            a, z = b * self.BLOCK, min((b + 1) * self.BLOCK, self.size) - 1
+            for i in range(12):
+                try:
+                    r = self.s.get(self.url, headers={"Range": f"bytes={a}-{z}"}, timeout=120)
+                    if r.status_code == 206:
+                        self.cache[b] = r.content
+                        break
+                    wait = int(r.headers.get("Retry-After", 0)) or min(5 * 2 ** i, 120)
+                except requests.RequestException:
+                    wait = min(5 * 2 ** i, 120)
+                time.sleep(wait)
+            else:
+                raise IOError(f"range {a}-{z} failed")
+        return self.cache[b]
+
+    def readinto(self, buf):
+        n = min(len(buf), self.size - self.pos)
+        if n <= 0:
+            return 0
+        out, p = bytearray(), self.pos
+        while len(out) < n:
+            b, o = divmod(p, self.BLOCK)
+            chunk = self._block(b)[o:o + n - len(out)]
+            out += chunk; p += len(chunk)
+        buf[:n] = out
+        self.pos += n
+        return n
 
 
 def one_year(y, tries=6):
     for i in range(tries):
         try:
-            fs = fsspec.filesystem("http", client_kwargs={"trust_env": True}, block_size=8 * 1024 * 1024)
-            with fs.open(URL.format(y=y)) as f:
+            with RangeFile(URL.format(y=y)) as f:
                 ds = xr.open_dataset(f, engine="h5netcdf")
                 p = ds.precip.sel(latitude=slice(BBOX[1], BBOX[3]), longitude=slice(BBOX[0], BBOX[2])).load()
             p = p.where(p >= 0)
